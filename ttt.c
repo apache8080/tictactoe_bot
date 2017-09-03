@@ -1,6 +1,10 @@
 #import <stdio.h>
 #import <string.h> 
 #define BOARD_SIZE 3
+#define EASY 2
+#define MEDIUM 3
+#define HARD 10
+
 
 enum game_state{
   USER_WIN,
@@ -13,6 +17,8 @@ struct point{
   int row;
   int col;
 };
+
+int level;
 
 struct point convert_pos_to_coord(int pos){
   //Works for Any N X N Square 
@@ -41,7 +47,6 @@ void draw_board(int board[][BOARD_SIZE]){
   for(int i=0; i<BOARD_SIZE; i++){
     for(int j=0; j<BOARD_SIZE; j++){
       int square = board[i][j];
-      printf("(%d)",square);
       switch(square){
       case 1:
 	printf("X ");
@@ -57,6 +62,7 @@ void draw_board(int board[][BOARD_SIZE]){
     }
     printf("\n");
   }
+  printf("----------------\n");
 }
 
 int get_winner(int board[][BOARD_SIZE]){
@@ -111,24 +117,51 @@ int make_move(int pos, int board[][BOARD_SIZE], int player){
   }
 }
 
-int minimax(int board[][BOARD_SIZE], int depth, int player){
+int minimax(int board[][BOARD_SIZE], int first_move, int depth, int player){
   int winner = get_winner(board);
+  int max_depth;
+  switch(level){
+  case 1:
+    max_depth = EASY;
+    break;
+  case 2:
+    max_depth = MEDIUM;
+    break;
+  case 3:
+    max_depth = HARD;
+    break;
+  default:
+    max_depth = HARD;
+  }
+  
   if(winner == 1){
-    return -100;
+    return 10 - depth;
   }else if(winner == -1){
-    return 100-depth;
-  }else if(winner == 2){
+    return -10 + depth;
+  }else if(winner == 2 || depth == max_depth){
     return 0;
   }
 
-  int best_score = -1;
-  for(int i=1; i<9; i++){  
+  int best_score = 0;
+  if(player == 1){
+    best_score = -1000;
+  }else{
+    best_score = 1000;
+  }
+  
+  for(int i=1; i<=9; i++){  
     struct point p = convert_pos_to_coord(i);
     if(board[p.row][p.col] == 0){
       board[p.row][p.col] = player;
-      int score = minimax(board, depth+1, -player);
-      if(score>best_score){
-	best_score = score;
+      int score = minimax(board, 0, depth+1, -player);
+      if(player == 1){
+	if(score>best_score){
+	  best_score = score;
+	}
+      }else{
+	if(score<best_score){
+	  best_score = score;
+	}
       }
       board[p.row][p.col] = 0;
     }
@@ -138,15 +171,14 @@ int minimax(int board[][BOARD_SIZE], int depth, int player){
 
 void bot_move(int board[][BOARD_SIZE]){
   int best_pos = -1;
-  int best_score = -1;
+  int best_score = 1000;
 
-  for(int i=1; i<9; i++){
+  for(int i=1; i<=9; i++){
     struct point p = convert_pos_to_coord(i);
     if(board[p.row][p.col] == 0){
-      printf("move: %d, row: %d, col: %d \n", i, p.row, p.col);
       board[p.row][p.col] = -1;
-      int score = minimax(board, 0, 1);
-      if(score>best_score){
+      int score = minimax(board, i, 0, 1);
+      if(score<best_score){
 	best_score = score;
 	best_pos = i;
       } 
@@ -170,8 +202,17 @@ int main(){
   memset(board, 0, sizeof(board[0][0])*BOARD_SIZE*BOARD_SIZE);
   
   enum game_state state = PLAYING;
-  draw_board(board);
   if(ans == 'y'){
+    printf("Enter a level: 1=Easy, 2=Medium, 3=Hard \n");
+    int user_level;
+    scanf("%d", &user_level);
+    if(user_level>=1 && user_level<=3){
+      level = user_level;
+    }else{
+      level = 3;
+      printf("Defaulting to the hardest level. \n");
+    }
+    draw_board(board);
     while(state == PLAYING){
       printf("Enter a position: \n");
       int pos;
@@ -189,7 +230,18 @@ int main(){
 	    state = CATSGAME;
 	  }else{
 	    bot_move(board);
+	    printf("Bot Played \n");
 	    draw_board(board);
+	    int is_winner = get_winner(board);
+	    if(is_winner == 1){
+	      state = USER_WIN;
+	    }else if(is_winner == -1){
+	      state = BOT_WIN;
+	    }else if(is_winner == 2){
+	      state = CATSGAME;
+	    }else{
+	      state = PLAYING;
+	    }
 	  }
 	}else{
 	  printf("Position already used. \n");
