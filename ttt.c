@@ -4,6 +4,11 @@
 #define EASY 2
 #define MEDIUM 3
 #define HARD 10
+#define USER 1
+#define BOT -1
+#define TIE 2
+#define MAX_LEVEL 3
+#define MIN_LEVEL 1
 
 
 enum game_state {
@@ -79,10 +84,10 @@ int get_winner (int board[][BOARD_SIZE]) {
 	    row_check += board[i][j];
 	    col_check += board[j][i];
 	}
-	if (row_check == 3 || row_check == -3) {
-	    return row_check / 3;
-	} else if(col_check == 3 || col_check == -3) {
-	    return col_check / 3;
+	if (row_check == BOARD_SIZE || row_check == -BOARD_SIZE) {
+	    return row_check / BOARD_SIZE;
+	} else if(col_check == BOARD_SIZE || col_check == -BOARD_SIZE) {
+	    return col_check / BOARD_SIZE;
 	} else {
 	    row_check = 0;
 	    col_check = 0;
@@ -93,13 +98,14 @@ int get_winner (int board[][BOARD_SIZE]) {
 	diag_check += board[i][i];
 	anti_diag_check += board[i][BOARD_SIZE-i-1]; 
     }
-  
-    if (n_moves == 9) {
+
+    int max_moves = BOARD_SIZE*BOARD_SIZE;
+    if (n_moves == max_moves) {
 	return 2;
-    } else if(diag_check == 3 || diag_check == -3) {
-	return diag_check / 3;
-    } else if(anti_diag_check == 3 || anti_diag_check == -3) {
-	return anti_diag_check / 3;
+    } else if(diag_check == BOARD_SIZE || diag_check == -BOARD_SIZE) {
+	return diag_check / BOARD_SIZE;
+    } else if(anti_diag_check == BOARD_SIZE || anti_diag_check == -BOARD_SIZE) {
+	return anti_diag_check / BOARD_SIZE;
     } else {
 	return 0;
     }
@@ -109,7 +115,7 @@ int make_move (int pos, int board[][BOARD_SIZE], int player) {
     struct point p = convert_pos_to_coord(pos);
     int row = p.row;
     int col = p.col;
-    if (board[row][col] != -1 && board[row][col] != 1) {
+    if (board[row][col] != BOT && board[row][col] != USER) {
 	board[row][col] = player;
 	return 1;
     } else {
@@ -133,12 +139,12 @@ int minimax (int board[][BOARD_SIZE], int first_move, int depth, int player) {
     default:
 	max_depth = HARD;
     }
-  
-    if (winner == 1) {
+
+    if (winner == USER) {
 	return 10 - depth;
-    } else if (winner == -1) {
+    } else if (winner == BOT) {
 	return -10 + depth;
-    } else if (winner == 2 || depth == max_depth) {
+    } else if (winner == TIE || depth == max_depth) {
 	return 0;
     }
 
@@ -190,7 +196,7 @@ void bot_move (int board[][BOARD_SIZE]) {
     }
 }
 
-int main() {
+int main(void) {
     char ans;
 
     printf("Welcome to Tic-Tac-Toe Bot \n");
@@ -206,7 +212,7 @@ int main() {
 	printf("Enter a level: 1=Easy, 2=Medium, 3=Hard \n");
 	int user_level;
 	scanf("%d", &user_level);
-	if (user_level >= 1 && user_level <= 3) {
+	if (user_level >= MIN_LEVEL && level<= MAX_LEVEL) {
 	    level = user_level;
 	} else {
 	    level = 3;
@@ -222,22 +228,22 @@ int main() {
 		if (move_result == 1) {
 		    draw_board(board);
 		    int is_winner = get_winner(board);
-		    if (is_winner == 1) {
+		    if (is_winner == USER) {
 			state = USER_WIN;
-		    } else if (is_winner == -1) {
+		    } else if (is_winner == BOT) {
 			state = BOT_WIN;
-		    } else if (is_winner == 2) {
+		    } else if (is_winner == TIE) {
 			state = CATSGAME;
 		    } else {
 			bot_move(board);
 			printf("Bot Played \n");
 			draw_board(board);
 			int is_winner = get_winner(board);
-			if (is_winner == 1) {
+			if (is_winner == USER) {
 			    state = USER_WIN;
-			} else if (is_winner == -1) {
+			} else if (is_winner == BOT) {
 			    state = BOT_WIN;
-			} else if (is_winner == 2) {
+			} else if (is_winner == TIE) {
 			    state = CATSGAME;
 			} else {
 			    state = PLAYING;
@@ -255,17 +261,17 @@ int main() {
     switch (state) {
     case USER_WIN:
 	printf("You Won the Game!!! \n");
-	return 1;
+	break;
 
     case BOT_WIN:
 	printf("You Lost the Game!!! \n");
-	return 2;
+	break;
     
     case CATSGAME:
 	printf("It's a Cat's Game!!! \n");
-	return 3;
+	break;
 
-    default: return 0;
+    default: break;
     }
     return 0;
 }
