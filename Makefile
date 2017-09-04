@@ -1,4 +1,4 @@
 build: ttt.c
-	gcc -o tictactoe ttt.c
+	gcc -Wall -o tictactoe ttt.c
 clean:
 	rm -rf tictactoe

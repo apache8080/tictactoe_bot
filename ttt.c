@@ -1,5 +1,5 @@
-#import <stdio.h>
-#import <string.h> 
+#include <stdio.h>
+#include <string.h> 
 #define BOARD_SIZE 3
 #define EASY 2
 #define MEDIUM 3
