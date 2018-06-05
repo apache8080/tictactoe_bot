@@ -14,3 +14,7 @@ If you want to try out the game on your computer here are the steps to get it ru
 3. ``` ./tictactoe ``` 
 
 If you run in to any issues running ``` make clean build ``` will clean up the workspace and rebuild the code.
+
+-----------------------
+###Contributors
+Rishi Desai(apache8080)
